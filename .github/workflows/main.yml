@@ -1,0 +1,36 @@
+name: Build plugin
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Unzip sources
+        run: |
+          mkdir -p _src
+          for z in *.zip; do
+            unzip -o "$z" -d _src
+          done
+
+      - name: Build with Maven
+        run: |
+          POM=$(find _src -name pom.xml | head -n 1)
+          mvn -B -f "$POM" package
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: CustomEnchants
+          path: _src/**/target/CustomEnchants.jar
